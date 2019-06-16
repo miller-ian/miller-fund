@@ -200,7 +200,6 @@ def calculate_pythagorean_expectation(tree, team):
     season- 70%
     last3 - 30%
     """
-    teamLoc = get_team_location(team)
     stats = tree.xpath('//table[@class="tr-table"]//tr//td[@class="text-right"]/text()')
     pointsFor = float(stats[3])
     
@@ -211,7 +210,6 @@ def calculate_pythagorean_expectation(tree, team):
 
 
 def normalize(p1, p2):
-    total = p1 + p2
     regular = True
     greater = 0
     smaller = 0
@@ -255,7 +253,6 @@ def kelly_compute(winProb, odds, bankroll):
     return edge*bankroll
 
 def get_model_lines(homeTeam, awayTeam):
-    
     homeConfidence = (50 * calculate_pythagorean_expectation(newTree, homeTeam)) + (25 * calculate_moving_team_record(tree, numGamesPlayed)) + (25 * calculate_moving_homegame_record(tree, numGamesPlayed))
     awayConfidence = (50 * calculate_pythagorean_expectation(newTreeAway, awayTeam)) + (25 * calculate_moving_team_record(awayTree, numGamesPlayedAway)) + (25 * calculate_moving_awaygame_record(awayTree, numGamesPlayedAway))
     normalizedHome = (normalize(homeConfidence, awayConfidence)[0]*100) 
@@ -270,23 +267,29 @@ def get_model_lines(homeTeam, awayTeam):
     else:
         return ((winner, 'if moneyline >', convert_to_moneyline(normalizedHome)), (loser, 'if moneyline >', convert_to_moneyline(normalizedAway)))
 
-def get_kelly_wager(homeTeam, awayTeam):
+def get_model_lines_plus_kelly(homeTeam, awayTeam):
+    homeConfidence = (50 * calculate_pythagorean_expectation(newTree, homeTeam)) + (25 * calculate_moving_team_record(tree, numGamesPlayed)) + (25 * calculate_moving_homegame_record(tree, numGamesPlayed))
+    awayConfidence = (50 * calculate_pythagorean_expectation(newTreeAway, awayTeam)) + (25 * calculate_moving_team_record(awayTree, numGamesPlayedAway)) + (25 * calculate_moving_awaygame_record(awayTree, numGamesPlayedAway))
+    normalizedHome = (normalize(homeConfidence, awayConfidence)[0]*100) 
+    normalizedAway = (normalize(homeConfidence, awayConfidence)[1]*100)
     price_dict = build_price_dict()
     awayTeamForPrice = get_team_long(awayTeam)
     homeTeamForPrice = get_team_long(homeTeam)
-    awayLine, homeLine = parse_prices(awayTeamForPrice, homeTeamForPrice, price_dict)
-    if awayLine == 'EVEN':
-        awayLine = 100.0
-    if homeLine == 'EVEN':
-        homeLine = 100.0
-    awayLine = int(awayLine)
-    homeLine = int(homeLine)
-    awayWager = kelly_compute(normalizedAway, awayLine, bankroll)
-    homeWager = kelly_compute(normalizedHome, homeLine, bankroll)
-    if awayWager > 0:
-        return ("bet", awayWager, " on", awayTeam)
-    else:
-        return ("bet", homeWager, " on", homeTeam)
+    try:
+        awayLine, homeLine = parse_prices(awayTeamForPrice, homeTeamForPrice, price_dict)
+        if awayLine == 'EVEN':
+            awayLine = 100.0
+        if homeLine == 'EVEN':
+            homeLine = 100.0
+        awayLine = int(awayLine)
+        homeLine = int(homeLine)
+        awayWager = kelly_compute(normalizedAway, awayLine, bankroll)
+        homeWager = kelly_compute(normalizedHome, homeLine, bankroll)
+        if awayWager > 0:
+            return ("bet", awayWager, " on", awayTeam)
+        else:
+            return ("bet", homeWager, " on", homeTeam)
+    except:
+        return ("Lines for that game do not yet exist")
 
-print(get_model_lines(homeTeam, awayTeam))
-print(get_kelly_wager(homeTeam, awayTeam))
+print(get_model_lines_plus_kelly(homeTeam, awayTeam))
