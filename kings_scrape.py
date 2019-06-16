@@ -254,46 +254,39 @@ def kelly_compute(winProb, odds, bankroll):
     #print("bankroll", bankroll, type(bankroll))
     return edge*bankroll
 
-
-winner = homeTeam
-loser = awayTeam
-homeConfidence = (50 * calculate_pythagorean_expectation(newTree, homeTeam)) + (25 * calculate_moving_team_record(tree, numGamesPlayed)) + (25 * calculate_moving_homegame_record(tree, numGamesPlayed))
-awayConfidence = (50 * calculate_pythagorean_expectation(newTreeAway, awayTeam)) + (25 * calculate_moving_team_record(awayTree, numGamesPlayedAway)) + (25 * calculate_moving_awaygame_record(awayTree, numGamesPlayedAway))
-normalizedHome = (normalize(homeConfidence, awayConfidence)[0]*100) 
-normalizedAway = (normalize(homeConfidence, awayConfidence)[1]*100)
-price_dict = build_price_dict()
-awayTeamForPrice = get_team_long(awayTeam)
-homeTeamForPrice = get_team_long(homeTeam)
-awayLine, homeLine = parse_prices(awayTeamForPrice, homeTeamForPrice, price_dict)
-if awayLine == 'EVEN':
-    awayLine = 100.0
-if homeLine == 'EVEN':
-    homeLine = 100.0
-awayLine = int(awayLine)
-homeLine = int(homeLine)
-if homeConfidence < awayConfidence:
-    winner = awayTeam
-    loser = homeTeam
-# print(homeTeam, homeConfidence)
-# print(awayTeam, awayConfidence)
-# print(homeTeam, normalizedHome)
-# print(awayTeam, normalizedAway)
-#print(normalize(homeConfidence, awayConfidence), "winner is", winner)
-awayWager = kelly_compute(normalizedAway, awayLine, bankroll)
-homeWager = kelly_compute(normalizedHome, homeLine, bankroll)
-
-if winner == awayTeam:
-    print(winner, 'if moneyline >', convert_to_moneyline(normalizedAway))
-    print(loser, 'if moneyline >', convert_to_moneyline(normalizedHome))
+def get_model_lines(homeTeam, awayTeam):
     
-else:
-    print(winner, 'if moneyline >', convert_to_moneyline(normalizedHome))
-    print(loser, 'if moneyline >', convert_to_moneyline(normalizedAway))
+    homeConfidence = (50 * calculate_pythagorean_expectation(newTree, homeTeam)) + (25 * calculate_moving_team_record(tree, numGamesPlayed)) + (25 * calculate_moving_homegame_record(tree, numGamesPlayed))
+    awayConfidence = (50 * calculate_pythagorean_expectation(newTreeAway, awayTeam)) + (25 * calculate_moving_team_record(awayTree, numGamesPlayedAway)) + (25 * calculate_moving_awaygame_record(awayTree, numGamesPlayedAway))
+    normalizedHome = (normalize(homeConfidence, awayConfidence)[0]*100) 
+    normalizedAway = (normalize(homeConfidence, awayConfidence)[1]*100)
+    winner = homeTeam
+    loser = awayTeam
+    if homeConfidence < awayConfidence:
+        winner = awayTeam
+        loser = homeTeam
+    if winner == awayTeam:
+        return ((winner, 'if moneyline >', convert_to_moneyline(normalizedAway)), (loser, 'if moneyline >', convert_to_moneyline(normalizedHome)))
+    else:
+        return ((winner, 'if moneyline >', convert_to_moneyline(normalizedHome)), (loser, 'if moneyline >', convert_to_moneyline(normalizedAway)))
 
-# print("Given lines:", awayTeam, awayLine)
-# print("Given lines:", homeTeam, homeLine)
+def get_kelly_wager(homeTeam, awayTeam):
+    price_dict = build_price_dict()
+    awayTeamForPrice = get_team_long(awayTeam)
+    homeTeamForPrice = get_team_long(homeTeam)
+    awayLine, homeLine = parse_prices(awayTeamForPrice, homeTeamForPrice, price_dict)
+    if awayLine == 'EVEN':
+        awayLine = 100.0
+    if homeLine == 'EVEN':
+        homeLine = 100.0
+    awayLine = int(awayLine)
+    homeLine = int(homeLine)
+    awayWager = kelly_compute(normalizedAway, awayLine, bankroll)
+    homeWager = kelly_compute(normalizedHome, homeLine, bankroll)
+    if awayWager > 0:
+        return ("bet", awayWager, " on", awayTeam)
+    else:
+        return ("bet", homeWager, " on", homeTeam)
 
-if awayWager > 0:
-    print("You should bet", awayWager, " on", awayTeam)
-else:
-    print("You should bet", homeWager, "on", homeTeam)
+print(get_model_lines(homeTeam, awayTeam))
+print(get_kelly_wager(homeTeam, awayTeam))
