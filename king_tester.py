@@ -8,6 +8,7 @@ class Game:
         self.home_moneyLine = home_moneyLine
         self.away_moneyLine = away_moneyLine
     
+#hello
 listOfGames = []
 
 with open('C:/Users/imaxm/Desktop/mitSophomore/sportsBetting/historical_odds/1617.csv') as csv_file:
