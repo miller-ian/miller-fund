@@ -5,7 +5,9 @@ The purpose of this repo is to make money betting on NBA games.
 # How to Use
 
 1- Clone this repo
+
 2- Open a terminal and run kings_scrape.py
+
 3- You must enter team abbreviations in all CAPS, and they must match exactly the abbreviations I have specified in kings_scrape.py. For example, if you want to consult the model on how to bet Clippers v Lakers, you would type LAL for home team abbreviation and LAC for away team abbreviation. 
 
 # Notes
