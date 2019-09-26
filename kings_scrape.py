@@ -2,14 +2,19 @@ from lxml import html
 import requests
 import math
 import json
+from datetime import datetime
+import sys
 
 
 homeTeam = input("Give 3-letter abbreviation for home team: ")
-
 awayTeam = input("Give 3-letter abbreviation for away team: ")
 
-
-bankroll = float(input("Enter your bankroll:"))
+bankroll = input("Enter your bankroll:")
+try:
+    bankroll = float(bankroll)
+except:
+    print("Please enter a valid number for bankroll!")
+    sys.exit(1)
 
 def build_price_dict():
     aDict = {}
@@ -20,10 +25,13 @@ def build_price_dict():
         stuff = source[i]
         event = stuff['events'][0]['description']
         betKey = stuff['events'][0]['displayGroups'][0]['markets'][0]['key']
-        if betKey == "2W-HCAP":
-            away = stuff['events'][0]['displayGroups'][0]['markets'][1]['outcomes'][0]['price']['american']
-            home = stuff['events'][0]['displayGroups'][0]['markets'][1]['outcomes'][1]['price']['american']
-            aDict[event] = [away, home]
+        try:
+            if betKey == "2W-HCAP":
+                away = stuff['events'][0]['displayGroups'][0]['markets'][1]['outcomes'][0]['price']['american']
+                home = stuff['events'][0]['displayGroups'][0]['markets'][1]['outcomes'][1]['price']['american']
+                aDict[event] = [away, home]
+        except:
+            return ("No listings for this game yet!")
     return aDict
     
 def parse_prices(awayTeam, homeTeam, price_dict):
@@ -99,19 +107,23 @@ def get_team_long(team):
         'CLE' : 'Cleveland Cavaliers',
         'MEM' : 'Memphis Grizzlies',
     }.get(team)
+try:
+    page = requests.get('https://www.basketball-reference.com/teams/' + str(homeTeam) + '/2019_games.html')
+    tree = html.fromstring(page.content)
+
+    newPage = requests.get('https://www.teamrankings.com/nba/team/' + get_team_location(homeTeam) + '/')
+    newTree = html.fromstring(newPage.content)
 
 
-page = requests.get('https://www.basketball-reference.com/teams/' + str(homeTeam) + '/2019_games.html')
-tree = html.fromstring(page.content)
 
-newPage = requests.get('https://www.teamrankings.com/nba/team/' + get_team_location(homeTeam) + '/')
-newTree = html.fromstring(newPage.content)
+    awayPage = requests.get('https://www.basketball-reference.com/teams/' + str(awayTeam) + '/2019_games.html')
+    awayTree = html.fromstring(awayPage.content)
 
-awayPage = requests.get('https://www.basketball-reference.com/teams/' + str(awayTeam) + '/2019_games.html')
-awayTree = html.fromstring(awayPage.content)
-
-newPageAway = requests.get('https://www.teamrankings.com/nba/team/' + get_team_location(awayTeam) + '/')
-newTreeAway = html.fromstring(newPageAway.content)
+    newPageAway = requests.get('https://www.teamrankings.com/nba/team/' + get_team_location(awayTeam) + '/')
+    newTreeAway = html.fromstring(newPageAway.content)
+except:
+    print("One or both teams entered does not exist!")
+    sys.exit(1)
 
 def get_record(tree):
     stuff = tree.xpath('//tr[@class="team-blockup-data"]//td//p/text()')
@@ -203,8 +215,6 @@ def calculate_pythagorean_expectation(tree, team):
     """
     stats = tree.xpath('//table[@class="tr-table"]//tr//td[@class="text-right"]/text()')
     pointsFor = float(stats[3])
-    
-
     pointsAgainst = float(stats[13])
     expectation = (pow(pointsFor, 1.81))/(pow(pointsFor, 1.81) + pow(pointsAgainst, 1.81))
     return expectation
@@ -291,6 +301,10 @@ def get_model_lines_plus_kelly(homeTeam, awayTeam):
         else:
             return ("bet", homeWager, " on", homeTeam)
     except:
-        return ("Lines for that game do not yet exist")
+        today = datetime.today()
+        d1 = datetime.strptime("10-22-2019", '%m-%d-%Y')
+        delta = (d1 - today).days
+        
+        return ("No listings for this game yet! The NBA season starts in " + str(delta) + " days")
 
 print(get_model_lines_plus_kelly(homeTeam, awayTeam))
