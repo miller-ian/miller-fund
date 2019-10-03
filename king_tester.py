@@ -90,11 +90,15 @@ def get_teams():
     }
         
 def instantiateTeams():
+    leagueState = {}
     teamsDict = get_teams()
-    
+    teams = teamsDict.values()
+    for team in teams:
+        leagueState[team] = Team(team, None, 0, 0)
+    return leagueState
 
 
 if __name__ == '__main__':
     # date = None
     # teams = instantiateTeams()
-    print(get_point_total(team, 5))
+    print(instantiateTeams())
