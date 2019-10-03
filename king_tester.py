@@ -3,6 +3,14 @@ import csv
 import requests
 from lxml import html
 
+
+class Team:
+    def __init__(self, name, games, pointsFor, pointsAgainst):
+        self.name = name
+        self.games = games
+        self.pointsFor = pointsFor
+        self.pointsAgainst = pointsAgainst
+
 class Game:
     def __init__(self, date, home_team_city, away_team_city, home_moneyLine, away_moneyLine):
         self.date = date
@@ -46,5 +54,47 @@ def get_point_total(homeTeam, n):
         stuff = tree.xpath('//*[@id="games"]/tbody/tr[' + str(i) + ']/td[9]/text()')
         total += int(stuff[0])
     return total
+
+def get_teams():
+    return{
+        'GSW' : 'GoldenState',
+        'MIL' : 'Milwaukee',
+        'PHI' : 'Philadelphia',
+        'NOP' : 'NewOrleans',
+        'OKC' : 'OklahomaCity',
+        'TOR' : 'Toronto',
+        'LAC' : 'LAClippers',
+        'WAS' : 'Washington',
+        'SAC' : 'Sacramento',
+        'POR' : 'Portland',
+        'HOU' : 'Houston',
+        'BOS' : 'Boston',
+        'SAS' : 'SanAntonio',
+        'BRK' : 'Brooklyn',
+        'LAL' : 'LALakers',
+        'DEN' : 'Denver',
+        'MIN' : 'Minnesota',
+        'CHO' : 'Charlotte',
+        'ATL' : 'Atlanta',
+        'UTA' : 'Utah',
+        'DAL' : 'Dallas',
+        'IND' : 'Indiana',
+        'DET' : 'Detroit',
+        'PHO' : 'Phoenix',
+        'ORL' : 'Orlando',
+        'NYK' : 'NewYork',
+        'MIA' : 'Miami',
+        'CHI' : 'Chicago',
+        'CLE' : 'Cleveland',
+        'MEM' : 'Memphis',
+    }
         
-print(get_point_total(team, 5))
+def instantiateTeams():
+    teamsDict = get_teams()
+    
+
+
+if __name__ == '__main__':
+    # date = None
+    # teams = instantiateTeams()
+    print(get_point_total(team, 5))
