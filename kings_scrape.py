@@ -6,15 +6,7 @@ from datetime import datetime
 import sys
 
 
-homeTeam = input("Give 3-letter abbreviation for home team: ")
-awayTeam = input("Give 3-letter abbreviation for away team: ")
 
-bankroll = input("Enter your bankroll:")
-try:
-    bankroll = float(bankroll)
-except:
-    print("Please enter a valid number for bankroll!")
-    sys.exit(1)
 
 def build_price_dict():
     aDict = {}
@@ -107,23 +99,6 @@ def get_team_long(team):
         'CLE' : 'Cleveland Cavaliers',
         'MEM' : 'Memphis Grizzlies',
     }.get(team)
-try:
-    page = requests.get('https://www.basketball-reference.com/teams/' + str(homeTeam) + '/2019_games.html')
-    tree = html.fromstring(page.content)
-
-    newPage = requests.get('https://www.teamrankings.com/nba/team/' + get_team_location(homeTeam) + '/')
-    newTree = html.fromstring(newPage.content)
-
-
-
-    awayPage = requests.get('https://www.basketball-reference.com/teams/' + str(awayTeam) + '/2019_games.html')
-    awayTree = html.fromstring(awayPage.content)
-
-    newPageAway = requests.get('https://www.teamrankings.com/nba/team/' + get_team_location(awayTeam) + '/')
-    newTreeAway = html.fromstring(newPageAway.content)
-except:
-    print("One or both teams entered does not exist!")
-    sys.exit(1)
 
 def get_record(tree):
     stuff = tree.xpath('//tr[@class="team-blockup-data"]//td//p/text()')
@@ -132,9 +107,6 @@ def get_record(tree):
     wins = int(record[:dash])
     losses = int(record[dash+1:])
     return wins+losses
-
-numGamesPlayed = get_record(newTree)
-numGamesPlayedAway = get_record(newTreeAway)
 
 def create_triangle_num_list(numGamesPlayed):
     denom = 0
@@ -307,4 +279,34 @@ def get_model_lines_plus_kelly(homeTeam, awayTeam):
         
         return ("No listings for this game yet! The NBA season starts in " + str(delta) + " days")
 
-print(get_model_lines_plus_kelly(homeTeam, awayTeam))
+if __name__ == '__main__':
+    homeTeam = input("Give 3-letter abbreviation for home team: ")
+    awayTeam = input("Give 3-letter abbreviation for away team: ")
+
+    bankroll = input("Enter your bankroll:")
+    try:
+        bankroll = float(bankroll)
+    except:
+        print("Please enter a valid number for bankroll!")
+        sys.exit(1)
+
+    try:
+        page = requests.get('https://www.basketball-reference.com/teams/' + str(homeTeam) + '/2019_games.html')
+        tree = html.fromstring(page.content)
+
+        newPage = requests.get('https://www.teamrankings.com/nba/team/' + get_team_location(homeTeam) + '/')
+        newTree = html.fromstring(newPage.content)
+
+
+
+        awayPage = requests.get('https://www.basketball-reference.com/teams/' + str(awayTeam) + '/2019_games.html')
+        awayTree = html.fromstring(awayPage.content)
+
+        newPageAway = requests.get('https://www.teamrankings.com/nba/team/' + get_team_location(awayTeam) + '/')
+        newTreeAway = html.fromstring(newPageAway.content)
+    except:
+        print("One or both teams entered does not exist!")
+        sys.exit(1)
+    numGamesPlayed = get_record(newTree)
+    numGamesPlayedAway = get_record(newTreeAway)
+    print(get_model_lines_plus_kelly(homeTeam, awayTeam))
