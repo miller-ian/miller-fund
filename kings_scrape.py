@@ -5,9 +5,6 @@ import json
 from datetime import datetime
 import sys
 
-
-
-
 def build_price_dict():
     aDict = {}
     source = requests.get('https://www.bovada.lv/services/sports/event/v2/events/A/description/basketball').json()
@@ -29,8 +26,7 @@ def build_price_dict():
 def parse_prices(awayTeam, homeTeam, price_dict):
     for i in price_dict.keys():
         if awayTeam in i and homeTeam in i:
-            return price_dict[i]
-    
+            return price_dict[i]    
 
 def get_team_location(team):
     return{
@@ -213,7 +209,6 @@ def normalize(p1, p2):
         return (prob1, prob2)
     else:
         return (prob2, prob1)
-    
 
 def convert_to_moneyline(confidence):
     if confidence > 50:
@@ -296,9 +291,7 @@ if __name__ == '__main__':
 
         newPage = requests.get('https://www.teamrankings.com/nba/team/' + get_team_location(homeTeam) + '/')
         newTree = html.fromstring(newPage.content)
-
-
-
+        
         awayPage = requests.get('https://www.basketball-reference.com/teams/' + str(awayTeam) + '/2019_games.html')
         awayTree = html.fromstring(awayPage.content)
 

@@ -7,9 +7,11 @@ from datetime import datetime
 
 
 class Team:
-    def __init__(self, name, games, pointsFor, pointsAgainst):
+    def __init__(self, name, games, homeWins, awayWins, pointsFor, pointsAgainst):
         self.name = name
         self.games = games
+        self.homeWins = homeWins
+        self.awayWins = awayWins
         self.pointsFor = pointsFor
         self.pointsAgainst = pointsAgainst
 
@@ -18,6 +20,8 @@ class Game:
         self.date = date
         self.home_team_city = home_team_city
         self.away_team_city = away_team_city
+        self.home_points = home_points
+        self.away_points = away_points
         self.home_moneyLine = home_moneyLine
         self.away_moneyLine = away_moneyLine
 
@@ -86,7 +90,7 @@ def instantiateTeams():
     teamsDict = get_teams()
     teams = teamsDict.values()
     for team in teams:
-        leagueState[team] = Team(team, None, 0, 0)
+        leagueState[team] = Team(team, [], [], [], 0, 0)
     return leagueState
 
 def create_schedule_dict(data):
@@ -115,14 +119,57 @@ def create_daily_slate(all_dates_with_games):
 
 def timestep(leagueState, slate):
     newLeagueState = leagueState
-    print(newLeagueState)
+
     for game in slate:
         homeTeam = game.home_team_city
         homePoints = game.home_points
 
         awayTeam = game.away_team_city
         awayPoints = game.away_points
+
+        homeWin = 1
+        awayWin = 0
+        if awayPoints > homePoints:
+            awayWin = 1
+            homeWin = 0
+        homeTeamObject = leagueState[homeTeam]
+        homeGames = homeTeamObject.games
+        homePointsFor = homeTeamObject.pointsFor
+        homePointsAgainst = homeTeamObject.pointsAgainst
+        homeWinsAway = homeTeamObject.awayWins  #will remainn constant
+        homeWins = homeTeamObject.homeWins
+
+        homeGames.append(game)
+        updatedHomePointsFor = homePointsFor + int(homePoints)
+        updatedHomePointsAgainst = homePointsAgainst + int(awayPoints)
+        if len(homeWins) > 0:
+            updatedHomeWinTotal = homeWins[-1] + homeWin
+            homeWins.append(updatedHomeWinTotal)
+        else:
+            homeWins.append(homeWin)
+
+        updatedHomeTeam = Team(homeTeam, homeGames, homeWins, homeWinsAway, updatedHomePointsFor, updatedHomePointsAgainst)
         
+        awayTeamObject = leagueState[awayTeam]
+        awayGames = awayTeamObject.games
+        awayPointsFor = awayTeamObject.pointsFor
+        awayPointsAgainst = awayTeamObject.pointsAgainst
+        awayWinsHome = awayTeamObject.homeWins  #will remain constant
+        awayWins = awayTeamObject.awayWins
+
+        awayGames.append(game)
+        updatedAwayPointsFor = awayPointsFor + int(awayPoints)
+        updatedAwayPointsAgainst = awayPointsAgainst + int(homePoints)
+        if len(awayWins) > 0:
+            updatedAwayWinTotal = awayWins[-1] + awayWin
+            awayWins.append(updatedAwayWinTotal)
+        else:
+            awayWins.append(awayWin)
+
+        updatedAwayTeam = Team(awayTeam, awayGames, awayWinsHome, awayWins, awayPointsFor, awayPointsAgainst)
+
+        leagueState[awayTeam] = updatedAwayTeam
+        leagueState[homeTeam] = updatedHomeTeam        
 
     return newLeagueState
 
