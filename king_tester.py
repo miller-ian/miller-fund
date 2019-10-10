@@ -119,24 +119,25 @@ def create_daily_slate(all_dates_with_games):
 
 def timestep(leagueState, slate):
     newLeagueState = leagueState
-
     for game in slate:
+        
         homeTeam = game.home_team_city
         homePoints = game.home_points
 
         awayTeam = game.away_team_city
         awayPoints = game.away_points
-
+        
         homeWin = 1
         awayWin = 0
-        if awayPoints > homePoints:
+
+        if int(awayPoints) > int(homePoints):
             awayWin = 1
             homeWin = 0
         homeTeamObject = leagueState[homeTeam]
         homeGames = homeTeamObject.games
         homePointsFor = homeTeamObject.pointsFor
         homePointsAgainst = homeTeamObject.pointsAgainst
-        homeWinsAway = homeTeamObject.awayWins  #will remainn constant
+        homeWinsAway = homeTeamObject.awayWins  #will remain constant
         homeWins = homeTeamObject.homeWins
 
         homeGames.append(game)
@@ -146,9 +147,13 @@ def timestep(leagueState, slate):
             updatedHomeWinTotal = homeWins[-1] + homeWin
             homeWins.append(updatedHomeWinTotal)
         else:
-            homeWins.append(homeWin)
+            if homeWin == 0:
+                homeWins = [0]
+            else:
+                homeWins = [1]
 
         updatedHomeTeam = Team(homeTeam, homeGames, homeWins, homeWinsAway, updatedHomePointsFor, updatedHomePointsAgainst)
+        
         
         awayTeamObject = leagueState[awayTeam]
         awayGames = awayTeamObject.games
@@ -164,35 +169,41 @@ def timestep(leagueState, slate):
             updatedAwayWinTotal = awayWins[-1] + awayWin
             awayWins.append(updatedAwayWinTotal)
         else:
-            awayWins.append(awayWin)
+            
+            if awayWin == 0:
 
-        updatedAwayTeam = Team(awayTeam, awayGames, awayWinsHome, awayWins, awayPointsFor, awayPointsAgainst)
+                awayWins = [0]
+            else:
+                awayWins = [1]
 
+        updatedAwayTeam = Team(awayTeam, awayGames, awayWinsHome, awayWins, updatedAwayPointsFor, updatedAwayPointsAgainst)
         leagueState[awayTeam] = updatedAwayTeam
-        leagueState[homeTeam] = updatedHomeTeam        
-
+        leagueState[homeTeam] = updatedHomeTeam   
+    
     return newLeagueState
 
-def placeBets(leagueState, date):
-    return None
+def placeBets(leagueState, game):
+    homeTeam = game.home_team_city
+    awayTeam = game.away_team_city
+    return homeTeam, awayTeam
 
 
 if __name__ == '__main__':
-    # date = None
-    # teams = instantiateTeams()
+    
     leagueState = instantiateTeams()
     schedule_dict = create_schedule_dict(read_data(1617))
     datesWithGames = create_daily_slate(set(schedule_dict.keys()))
     
     count = 0
     for date in datesWithGames:
-        if count >= 1:
+        if count >= 10:
             break
         slate = schedule_dict[date]
-
-        for g in slate:
-            placeBets(leagueState, slate)
-            leagueState = timestep(leagueState, slate)
-
         
+        for g in slate:
+            placeBets(leagueState, g)
+        print("placing bets for", date)
+
+        leagueState = timestep(leagueState, slate)
+
         count += 1
