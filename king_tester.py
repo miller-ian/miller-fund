@@ -1,5 +1,6 @@
 import csv
-import kings_scrape as ks
+#import kings_scrape as ks
+import king_calculator as kc
 import requests
 from lxml import html
 from datetime import datetime
@@ -7,9 +8,10 @@ from datetime import datetime
 
 
 class Team:
-    def __init__(self, name, games, homeWins, awayWins, pointsFor, pointsAgainst):
+    def __init__(self, name, games, record, homeWins, awayWins, pointsFor, pointsAgainst):
         self.name = name
         self.games = games
+        self.record = record
         self.homeWins = homeWins
         self.awayWins = awayWins
         self.pointsFor = pointsFor
@@ -90,7 +92,7 @@ def instantiateTeams():
     teamsDict = get_teams()
     teams = teamsDict.values()
     for team in teams:
-        leagueState[team] = Team(team, [], [], [], 0, 0)
+        leagueState[team] = Team(team, [], [], [], [], 0, 0)
     return leagueState
 
 def create_schedule_dict(data):
@@ -118,7 +120,7 @@ def create_daily_slate(all_dates_with_games):
     return datesWithGames
 
 def timestep(leagueState, slate):
-    newLeagueState = leagueState
+    
     for game in slate:
         
         homeTeam = game.home_team_city
@@ -138,8 +140,10 @@ def timestep(leagueState, slate):
         homePointsFor = homeTeamObject.pointsFor
         homePointsAgainst = homeTeamObject.pointsAgainst
         homeWinsAway = homeTeamObject.awayWins  #will remain constant
+        homeTeamRecord = homeTeamObject.record
         homeWins = homeTeamObject.homeWins
 
+        homeTeamRecord.append(homeWin)
         homeGames.append(game)
         updatedHomePointsFor = homePointsFor + int(homePoints)
         updatedHomePointsAgainst = homePointsAgainst + int(awayPoints)
@@ -152,7 +156,7 @@ def timestep(leagueState, slate):
             else:
                 homeWins = [1]
 
-        updatedHomeTeam = Team(homeTeam, homeGames, homeWins, homeWinsAway, updatedHomePointsFor, updatedHomePointsAgainst)
+        updatedHomeTeam = Team(homeTeam, homeGames, homeTeamRecord, homeWins, homeWinsAway, updatedHomePointsFor, updatedHomePointsAgainst)
         
         
         awayTeamObject = leagueState[awayTeam]
@@ -160,8 +164,10 @@ def timestep(leagueState, slate):
         awayPointsFor = awayTeamObject.pointsFor
         awayPointsAgainst = awayTeamObject.pointsAgainst
         awayWinsHome = awayTeamObject.homeWins  #will remain constant
+        awayTeamRecord = awayTeamObject.record
         awayWins = awayTeamObject.awayWins
 
+        awayTeamRecord.append(awayWin)
         awayGames.append(game)
         updatedAwayPointsFor = awayPointsFor + int(awayPoints)
         updatedAwayPointsAgainst = awayPointsAgainst + int(homePoints)
@@ -176,16 +182,43 @@ def timestep(leagueState, slate):
             else:
                 awayWins = [1]
 
-        updatedAwayTeam = Team(awayTeam, awayGames, awayWinsHome, awayWins, updatedAwayPointsFor, updatedAwayPointsAgainst)
+        updatedAwayTeam = Team(awayTeam, awayGames, awayTeamRecord, awayWinsHome, awayWins, updatedAwayPointsFor, updatedAwayPointsAgainst)
         leagueState[awayTeam] = updatedAwayTeam
         leagueState[homeTeam] = updatedHomeTeam   
-    
-    return newLeagueState
+    return leagueState
 
-def placeBets(leagueState, game):
+def calculate_winnings(betStatement):
+    return 15
+
+def placeBets(leagueState, game, bankroll):
     homeTeam = game.home_team_city
     awayTeam = game.away_team_city
-    return homeTeam, awayTeam
+    homePointsFor = leagueState[homeTeam].pointsFor
+    homePointsAgainst = leagueState[homeTeam].pointsAgainst
+    homeTeamRecord = leagueState[homeTeam].record
+    homeTeamHomeRecord = leagueState[homeTeam].homeWins
+    homeLine = game.home_moneyLine
+    awayPointsFor = leagueState[awayTeam].pointsFor
+    awayPointsAgainst = leagueState[awayTeam].pointsAgainst
+    awayTeamRecord = leagueState[awayTeam].record
+    awayTeamAwayRecord = leagueState[awayTeam].awayWins
+    awayLine = game.away_moneyLine
+    
+    bet = (kc.get_model_lines_plus_kelly(homeTeam,
+                                        homePointsFor, 
+                                        homePointsAgainst, 
+                                        homeTeamRecord,
+                                        homeTeamHomeRecord, 
+                                        homeLine, 
+                                        awayTeam,
+                                        awayPointsFor, 
+                                        awayPointsAgainst, 
+                                        awayTeamRecord,
+                                        awayTeamAwayRecord, 
+                                        awayLine,
+                                        bankroll))
+    
+    return calculate_winnings(bet)
 
 
 if __name__ == '__main__':
@@ -193,16 +226,23 @@ if __name__ == '__main__':
     leagueState = instantiateTeams()
     schedule_dict = create_schedule_dict(read_data(1617))
     datesWithGames = create_daily_slate(set(schedule_dict.keys()))
-    
+    bankroll = 100.0
     count = 0
     for date in datesWithGames:
-        if count >= 10:
+        print(bankroll)
+        dateWinnings = 0
+        if count >= 4:
             break
+
         slate = schedule_dict[date]
         
-        for g in slate:
-            placeBets(leagueState, g)
-        print("placing bets for", date)
+        if count > 2:
+            
+            
+            for g in slate:
+                dateWinnings += placeBets(leagueState, g, bankroll)
+            bankroll += dateWinnings    
+            print("placing bets for", date)
 
         leagueState = timestep(leagueState, slate)
 

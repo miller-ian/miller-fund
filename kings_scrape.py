@@ -303,3 +303,18 @@ if __name__ == '__main__':
     numGamesPlayed = get_record(newTree)
     numGamesPlayedAway = get_record(newTreeAway)
     print(get_model_lines_plus_kelly(homeTeam, awayTeam))
+
+
+        [['c', True], [('a', True), ('d', True)], [('b', False), ('a', True)], [('a', False), ('e', True), ('d', False)]]
+        [[("a", True)], [("b", False), [("c", True), ("d", True)]]]
+[[("a", True)], [("b", False), [("c", True), ("d", True)]]]
+[[('Alice_basement', True), ('Alice_penthouse', True)], [('Bob_kitchen', True)], [('Charles_basement', True), ('Charles_kitchen', True)], [('Dana_basement', True), ('Dana_penthouse', True), ('Dana_kitchen', True)]]
+
+[[('Alice_basement', True), ('Alice_kitchen', True), ('Alice_penthouse', True)], [('Bob_basement', True), ('Bob_kitchen', True), ('Bob_penthouse', True)], [('Charles_basement', True), ('Charles_kitchen', True), ('Charles_penthouse', True)], [('Dana_basement', True), ('Dana_kitchen', True), ('Dana_penthouse', True)],
+[('Alice_basement', False), ('Alice_penthouse', False)], [('Alice_basement', False), ('Alice_kitchen', False)], [('Alice_kitchen', False), ('Alice_penthouse', False)],
+[('Bob_basement', False), ('Bob_penthouse', False)], [('Bob_basement', False), ('Bob_kitchen', False)], [('Bob_kitchen', False), ('Bob_penthouse', False)],
+[('Charles_basement', False), ('Charles_penthouse', False)], [('Charles_basement', False), ('Charles_kitchen', False)], [('Charles_kitchen', False), ('Charles_penthouse', False)],
+[('Dana_basement', False), ('Dana_penthouse', False)], [('Dana_basement', False), ('Dana_kitchen', False)], [('Dana_kitchen', False), ('Dana_penthouse', False)]]
+
+
+[[('Alice_kitchen', True), ('Alice_penthouse', True), ('Alice_basement', True)], [('Bob_kitchen', True), ('Bob_penthouse', True), ('Bob_basement', True)], [('Charles_kitchen', True), ('Charles_penthouse', True), ('Charles_basement', True)], [('Dana_kitchen', True), ('Dana_penthouse', True), ('Dana_basement', True)], [('Alice_kitchen', False), ('Alice_basement', False)], [('Alice_kitchen', False), ('Alice_penthouse', False)], [('Alice_penthouse', False), ('Alice_basement', False)], [('Bob_kitchen', False), ('Bob_basement', False)], [('Bob_kitchen', False), ('Bob_penthouse', False)], [('Bob_penthouse', False), ('Bob_basement', False)], [('Charles_kitchen', False), ('Charles_basement', False)], [('Charles_kitchen', False), ('Charles_penthouse', False)], [('Charles_penthouse', False), ('Charles_basement', False)], [('Dana_kitchen', False), ('Dana_basement', False)], [('Dana_kitchen', False), ('Dana_penthouse', False)], [('Dana_penthouse', False), ('Dana_basement', False)]]
