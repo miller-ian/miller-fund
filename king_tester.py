@@ -187,8 +187,39 @@ def timestep(leagueState, slate):
         leagueState[homeTeam] = updatedHomeTeam   
     return leagueState
 
-def calculate_winnings(betStatement):
-    return 15
+def calculate_winnings(bet, game):
+    
+    homeTeam = game.home_team_city
+    awayTeam = game.away_team_city
+    print(bet)
+    betTeam = bet[0]
+    betAmount = bet[1]
+    betLine = float(bet[2])
+
+    
+    possibleWinningsDog = betAmount * betLine / 100.0
+    possibleWinningsFav = betAmount / (-betLine/100.0)
+    possibleWinnings = 0
+    if betLine > 0:
+        possibleWinnings = possibleWinningsDog
+    else:
+        possibleWinnings = possibleWinningsFav
+
+    if game.home_points > game.away_points:
+        if betTeam == homeTeam:
+            print("WIN")
+            return possibleWinnings
+        else:
+            print("LOSS")
+            return -betAmount
+    else:
+        if betTeam == awayTeam:
+            print("WIN")
+            return possibleWinnings
+        else:
+            print("LOSS")
+
+            return -betAmount
 
 def placeBets(leagueState, game, bankroll):
     homeTeam = game.home_team_city
@@ -217,8 +248,9 @@ def placeBets(leagueState, game, bankroll):
                                         awayTeamAwayRecord, 
                                         awayLine,
                                         bankroll))
-    
-    return calculate_winnings(bet)
+
+    winnings = calculate_winnings(bet, game)
+    return winnings
 
 
 if __name__ == '__main__':
@@ -226,24 +258,24 @@ if __name__ == '__main__':
     leagueState = instantiateTeams()
     schedule_dict = create_schedule_dict(read_data(1617))
     datesWithGames = create_daily_slate(set(schedule_dict.keys()))
-    bankroll = 100.0
+    bankroll = 500.0
     count = 0
     for date in datesWithGames:
-        print(bankroll)
+        
         dateWinnings = 0
-        if count >= 4:
+        if count >= len(datesWithGames) - 1:
             break
 
         slate = schedule_dict[date]
         
-        if count > 2:
-            
+        if count > 60:
             
             for g in slate:
                 dateWinnings += placeBets(leagueState, g, bankroll)
-            bankroll += dateWinnings    
-            print("placing bets for", date)
+                bankroll += dateWinnings
+            print("bankroll", bankroll)
 
         leagueState = timestep(leagueState, slate)
 
         count += 1
+    print(bankroll)
