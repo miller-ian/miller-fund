@@ -52,7 +52,8 @@ def calculate_pythagorean_expectation(pointsFor, pointsAgainst):
     season- 70%
     last3 - 30%
     """
-    expectation = (pow(pointsFor, 1.81))/(pow(pointsFor, 1.81) + pow(pointsAgainst, 1.81))
+    power = .8
+    expectation = (pow(pointsFor, power))/(pow(pointsFor, power) + pow(pointsAgainst, power))
     return expectation
 
 
@@ -88,7 +89,7 @@ def convert_to_moneyline(confidence):
 
 def kelly_compute(winProb, odds, bankroll):
     winProb *= (1/100)
-    odds = int(odds)
+    odds = float(odds)
     if odds > 0:
         b = (odds / 100.0) + 1
 
@@ -100,9 +101,11 @@ def kelly_compute(winProb, odds, bankroll):
     return edge*bankroll
 
 def get_model_lines_plus_kelly(homeTeam, homePointsFor, homePointsAgainst, homeTeamRecord, homeTeamHomeRecord, homeLine, awayTeam, awayPointsFor, awayPointsAgainst, awayTeamRecord, awayTeamAwayRecord, awayLine, bankroll):
-    homeConfidence = (50 * calculate_pythagorean_expectation(homePointsFor, homePointsAgainst)) + (25 * calculate_moving_team_record(homeTeamRecord)) + (25 * calculate_moving_homegame_record(homeTeamHomeRecord))
+    weights = [70, 15, 15] #pythagorean, record, home/away record
+    
+    homeConfidence = (weights[0] * calculate_pythagorean_expectation(homePointsFor, homePointsAgainst)) + (weights[1] * calculate_moving_team_record(homeTeamRecord)) + (weights[2] * calculate_moving_homegame_record(homeTeamHomeRecord))
 
-    awayConfidence = (50 * calculate_pythagorean_expectation(awayPointsFor, awayPointsAgainst)) + (25 * calculate_moving_team_record(awayTeamRecord)) + (25 * calculate_moving_awaygame_record(awayTeamAwayRecord))
+    awayConfidence = (weights[0] * calculate_pythagorean_expectation(awayPointsFor, awayPointsAgainst)) + (weights[1] * calculate_moving_team_record(awayTeamRecord)) + (weights[2] * calculate_moving_awaygame_record(awayTeamAwayRecord))
 
     normalizedHome = (normalize(homeConfidence, awayConfidence)[0]*100) 
     normalizedAway = (normalize(homeConfidence, awayConfidence)[1]*100)

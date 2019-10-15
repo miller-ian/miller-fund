@@ -4,8 +4,7 @@ import king_calculator as kc
 import requests
 from lxml import html
 from datetime import datetime
-
-
+from decimal import Decimal
 
 class Team:
     def __init__(self, name, games, record, homeWins, awayWins, pointsFor, pointsAgainst):
@@ -30,6 +29,8 @@ class Game:
 def read_data(year):
     listOfGames = []
     with open('C:/Users/imaxm/Desktop/mitSophomore/sportsBetting/miller-fund/historical_odds/' + str(year) + '.csv') as csv_file:
+    #with open('C:/Users/imaxm/Desktop/mitSophomore/sportsBetting/miller-fund/historical_odds/test.csv') as csv_file:
+
         csv_reader = csv.reader(csv_file, delimiter=",")
         line_count = 1
         for row in csv_reader:
@@ -191,12 +192,12 @@ def calculate_winnings(bet, game):
     
     homeTeam = game.home_team_city
     awayTeam = game.away_team_city
-    print(bet)
+    #print(bet)
     betTeam = bet[0]
     betAmount = bet[1]
-    betLine = float(bet[2])
-
-    
+    betLine = bet[2]
+    if betAmount < 0:
+        return [0, 0, 0, 0]
     possibleWinningsDog = betAmount * betLine / 100.0
     possibleWinningsFav = betAmount / (-betLine/100.0)
     possibleWinnings = 0
@@ -207,33 +208,36 @@ def calculate_winnings(bet, game):
 
     if game.home_points > game.away_points:
         if betTeam == homeTeam:
-            print("WIN")
-            return possibleWinnings
+            #print("WIN", possibleWinnings)
+            return [possibleWinnings, -betAmount, 1, 0]
         else:
-            print("LOSS")
-            return -betAmount
+            #print("LOSS", -betAmount)
+            return [0, -betAmount, 0, 1]
     else:
         if betTeam == awayTeam:
-            print("WIN")
-            return possibleWinnings
+            #print("WIN", possibleWinnings)
+            
+            return [possibleWinnings, -betAmount, 1, 0]
         else:
-            print("LOSS")
+            #print("LOSS", -betAmount)
+            return [0, -betAmount, 0, 1]
 
-            return -betAmount
+def placeBet(leagueState, game, bankroll):
+    if game.home_moneyLine == "NL" or game.home_moneyLine == "NL":
+        return [0, 0, 0, 0]
 
-def placeBets(leagueState, game, bankroll):
     homeTeam = game.home_team_city
     awayTeam = game.away_team_city
     homePointsFor = leagueState[homeTeam].pointsFor
     homePointsAgainst = leagueState[homeTeam].pointsAgainst
     homeTeamRecord = leagueState[homeTeam].record
     homeTeamHomeRecord = leagueState[homeTeam].homeWins
-    homeLine = game.home_moneyLine
+    homeLine = int(game.home_moneyLine)
     awayPointsFor = leagueState[awayTeam].pointsFor
     awayPointsAgainst = leagueState[awayTeam].pointsAgainst
     awayTeamRecord = leagueState[awayTeam].record
     awayTeamAwayRecord = leagueState[awayTeam].awayWins
-    awayLine = game.away_moneyLine
+    awayLine = int(game.away_moneyLine)
     
     bet = (kc.get_model_lines_plus_kelly(homeTeam,
                                         homePointsFor, 
@@ -248,34 +252,46 @@ def placeBets(leagueState, game, bankroll):
                                         awayTeamAwayRecord, 
                                         awayLine,
                                         bankroll))
-
     winnings = calculate_winnings(bet, game)
     return winnings
 
 
 if __name__ == '__main__':
-    
+    WINS = 0
+    LOSSES = 0
     leagueState = instantiateTeams()
-    schedule_dict = create_schedule_dict(read_data(1617))
+    schedule_dict = create_schedule_dict(read_data(1112))
     datesWithGames = create_daily_slate(set(schedule_dict.keys()))
-    bankroll = 500.0
+    bankroll = 100
     count = 0
+    numWagers = 0
     for date in datesWithGames:
-        
-        dateWinnings = 0
         if count >= len(datesWithGames) - 1:
+        #if count >= 4:
             break
 
         slate = schedule_dict[date]
         
-        if count > 60:
-            
+        if count > 40:
+            slateWinnings = 0
+            slateCost = 0
             for g in slate:
-                dateWinnings += placeBets(leagueState, g, bankroll)
-                bankroll += dateWinnings
-            print("bankroll", bankroll)
-
+                wager = placeBet(leagueState, g, bankroll)
+                slateWinnings += wager[0]
+                slateCost = wager[1]
+                bankroll += slateCost
+                numWagers += 1
+                WINS += wager[2]
+                LOSSES += wager[3]
+            bankroll += slateWinnings
         leagueState = timestep(leagueState, slate)
 
         count += 1
-    print(bankroll)
+    expectedGrowth = 100.0* (((bankroll/100.0)**(1/numWagers))-1)
+    expectedGrowth = str(expectedGrowth)
+    expectedGrowth = expectedGrowth[:5]
+    print("ending bankroll:", bankroll)
+    print("expected growth:", expectedGrowth, "percent")
+    print("number of wagers simulated:", numWagers)
+    print("number of wins:", WINS)
+    print("number of losses:", LOSSES)
