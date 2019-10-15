@@ -26,6 +26,21 @@ class Game:
         self.home_moneyLine = home_moneyLine
         self.away_moneyLine = away_moneyLine
 
+def read_years():
+    years = [708,
+            809,
+            910,
+            1011,
+            1112,
+            1213,
+            1314,
+            1415,
+            1516,
+            1617,
+            1718,
+            1819]
+    return years
+
 def read_data(year):
     listOfGames = []
     with open('C:/Users/imaxm/Desktop/mitSophomore/sportsBetting/miller-fund/historical_odds/' + str(year) + '.csv') as csv_file:
@@ -86,6 +101,9 @@ def get_teams():
         'CHI' : 'Chicago',
         'CLE' : 'Cleveland',
         'MEM' : 'Memphis',
+        'NJY' : 'NewJersey',
+        'SEA' : 'Seattle'
+
     }
         
 def instantiateTeams():
@@ -257,41 +275,58 @@ def placeBet(leagueState, game, bankroll):
 
 
 if __name__ == '__main__':
-    WINS = 0
-    LOSSES = 0
-    leagueState = instantiateTeams()
-    schedule_dict = create_schedule_dict(read_data(1112))
-    datesWithGames = create_daily_slate(set(schedule_dict.keys()))
-    bankroll = 100
-    count = 0
-    numWagers = 0
-    for date in datesWithGames:
-        if count >= len(datesWithGames) - 1:
-        #if count >= 4:
-            break
+    years = read_years()
+    totalWins = 0
+    totalLosses = 0
+    totalGrowth = 0
+    totalNumWagers = 0
+    for year in years:
+        WINS = 0
+        LOSSES = 0
+        leagueState = instantiateTeams()
+        schedule_dict = create_schedule_dict(read_data(year))
+        datesWithGames = create_daily_slate(set(schedule_dict.keys()))
+        bankroll = 100
+        count = 0
+        numWagers = 0
+        for date in datesWithGames:
+            if count >= len(datesWithGames) - 1:
+            #if count >= 4:
+                break
 
-        slate = schedule_dict[date]
-        
-        if count > 40:
-            slateWinnings = 0
-            slateCost = 0
-            for g in slate:
-                wager = placeBet(leagueState, g, bankroll)
-                slateWinnings += wager[0]
-                slateCost = wager[1]
-                bankroll += slateCost
-                numWagers += 1
-                WINS += wager[2]
-                LOSSES += wager[3]
-            bankroll += slateWinnings
-        leagueState = timestep(leagueState, slate)
+            slate = schedule_dict[date]
+            
+            if count > 40:
+                slateWinnings = 0
+                slateCost = 0
+                for g in slate:
+                    wager = placeBet(leagueState, g, bankroll)
+                    slateWinnings += wager[0]
+                    slateCost = wager[1]
+                    bankroll += slateCost
+                    numWagers += 1
+                    WINS += wager[2]
+                    LOSSES += wager[3]
+                bankroll += slateWinnings
+            leagueState = timestep(leagueState, slate)
 
-        count += 1
-    expectedGrowth = 100.0* (((bankroll/100.0)**(1/numWagers))-1)
-    expectedGrowth = str(expectedGrowth)
-    expectedGrowth = expectedGrowth[:5]
-    print("ending bankroll:", bankroll)
-    print("expected growth:", expectedGrowth, "percent")
-    print("number of wagers simulated:", numWagers)
-    print("number of wins:", WINS)
-    print("number of losses:", LOSSES)
+            count += 1
+        expectedGrowth = 100.0* (((bankroll/100.0)**(1/numWagers))-1)
+        expectedGrowth = str(expectedGrowth)
+        expectedGrowth = expectedGrowth[:5]
+        totalLosses += LOSSES
+        totalWins += WINS
+        totalGrowth += float(expectedGrowth)
+        totalNumWagers += numWagers
+        print("year:", year)
+        print("ending bankroll:", bankroll)
+        print("expected growth:", expectedGrowth, "percent")
+        print("number of wagers simulated:", numWagers)
+        print("number of wins:", WINS)
+        print("number of losses:", LOSSES)
+        print("______________")
+
+    print("******************")
+    print("Total wins over", str(len(years)), "years:", totalWins)
+    print("Total losses over", str(len(years)), "years:", totalLosses)
+    print("Average expected growth", str(len(years)), "years:", totalGrowth / len(years))
