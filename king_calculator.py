@@ -113,9 +113,9 @@ def get_model_lines_plus_kelly(homeTeam, homePointsFor, homePointsAgainst, homeT
         awayWager = kelly_compute(normalizedAway, awayLine, bankroll)
         homeWager = kelly_compute(normalizedHome, homeLine, bankroll)
         if awayWager > 0:
-            return (awayTeam, awayWager, awayLine, normalizedAway)
+            return (awayTeam, awayWager, awayLine, normalizedAway, homeTeam)
         else:
-            return (homeTeam, homeWager, homeLine, normalizedHome)
+            return (homeTeam, homeWager, homeLine, normalizedHome, awayTeam)
     except:
         today = datetime.today()
         d1 = datetime.strptime("10-22-2019", '%m-%d-%Y')

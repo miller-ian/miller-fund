@@ -207,7 +207,14 @@ def timestep(leagueState, slate):
     return leagueState
 
 def calculate_winnings(bet, game):
-    
+    '''
+    Return is a list of 5 elements:
+    1- Actual return
+    2- Amount of money wagered
+    3- 1 for win, 0 for no win
+    4- 1 for loss, 0 for no loss
+    5- profit
+    '''
     homeTeam = game.home_team_city
     awayTeam = game.away_team_city
     #print(bet)
@@ -215,35 +222,36 @@ def calculate_winnings(bet, game):
     betAmount = bet[1]
     betLine = bet[2]
     if betAmount < 0:
-        return [0, 0, 0, 0]
+        return [0, 0, 0, 0, 0]
     possibleWinningsDog = betAmount * betLine / 100.0
     possibleWinningsFav = betAmount / (-betLine/100.0)
     possibleWinnings = 0
+    possibleProfit = 0
     if betLine > 0:
-        possibleWinnings = possibleWinningsDog
+        possibleWinnings = possibleWinningsDog + betAmount
+        possibleProfit = possibleWinningsDog
     else:
-        possibleWinnings = possibleWinningsFav
-
+        possibleWinnings = possibleWinningsFav + betAmount
+        possibleProfit = possibleWinningsFav
+    
+    betString = "Betting $" + str(betAmount) + " on " + str(betTeam) + " to beat " + str(bet[4]) + "..."
+    print (betString)
     if game.home_points > game.away_points:
         if betTeam == homeTeam:
-            #print("WIN", possibleWinnings)
-            return [possibleWinnings, -betAmount, 1, 0]
+            return [possibleWinnings, -betAmount, 1, 0, possibleProfit]
         else:
-            #print("LOSS", -betAmount)
-            return [0, -betAmount, 0, 1]
+            return [0, -betAmount, 0, 1, 0, 0]
     else:
         if betTeam == awayTeam:
-            #print("WIN", possibleWinnings)
             
-            return [possibleWinnings, -betAmount, 1, 0]
+            return [possibleWinnings, -betAmount, 1, 0, possibleProfit]
         else:
-            #print("LOSS", -betAmount)
-            return [0, -betAmount, 0, 1]
+            return [0, -betAmount, 0, 1, 0, 0]
 
 def placeBet(leagueState, game, bankroll):
     if game.home_moneyLine == "NL" or game.home_moneyLine == "NL":
-        return [0, 0, 0, 0]
-
+        return [0, 0, 0, 0, 0]
+    
     homeTeam = game.home_team_city
     awayTeam = game.away_team_city
     homePointsFor = leagueState[homeTeam].pointsFor
@@ -276,10 +284,14 @@ def placeBet(leagueState, game, bankroll):
 
 if __name__ == '__main__':
     years = read_years()
+    #years = [1819]
     totalWins = 0
     totalLosses = 0
     totalGrowth = 0
     totalNumWagers = 0
+    totalWagered = 0
+    totalMade = 0
+    totalEdge = 0
     for year in years:
         WINS = 0
         LOSSES = 0
@@ -287,26 +299,40 @@ if __name__ == '__main__':
         schedule_dict = create_schedule_dict(read_data(year))
         datesWithGames = create_daily_slate(set(schedule_dict.keys()))
         bankroll = 100
+        wageredMoney = 0
+        profits = 0
         count = 0
         numWagers = 0
+        additiveEdge = 0
         for date in datesWithGames:
             if count >= len(datesWithGames) - 1:
-            #if count >= 4:
+            #if count >= 100:
                 break
 
             slate = schedule_dict[date]
             
-            if count > 40:
+            if count > 10:
                 slateWinnings = 0
                 slateCost = 0
                 for g in slate:
                     wager = placeBet(leagueState, g, bankroll)
                     slateWinnings += wager[0]
+                    slateProfit = wager[4]
                     slateCost = wager[1]
                     bankroll += slateCost
+                    
                     numWagers += 1
                     WINS += wager[2]
                     LOSSES += wager[3]
+                    wageredMoney -= slateCost
+                    try:
+                        additiveEdge += (slateProfit/-slateCost)
+                    except:
+                        additiveEdge += (slateProfit/1)
+
+                    
+               
+                profits += slateWinnings
                 bankroll += slateWinnings
             leagueState = timestep(leagueState, slate)
 
@@ -318,15 +344,25 @@ if __name__ == '__main__':
         totalWins += WINS
         totalGrowth += float(expectedGrowth)
         totalNumWagers += numWagers
-        print("year:", year)
-        print("ending bankroll:", bankroll)
-        print("expected growth:", expectedGrowth, "percent")
-        print("number of wagers simulated:", numWagers)
-        print("number of wins:", WINS)
-        print("number of losses:", LOSSES)
-        print("______________")
+        totalWagered += wageredMoney
+        totalMade += bankroll-100
+        yearlyEdge = additiveEdge/numWagers
+        totalEdge += yearlyEdge
+    #     print("year:", year)
+    #     print("ending bankroll:", bankroll)
+    #     print("expected growth:", expectedGrowth, "percent")
+    #     print("number of wagers simulated:", numWagers)
+    #     print("number of wins:", WINS)
+    #     print("number of losses:", LOSSES)
+    #     print(" ")
+    #     print("total money wagered:", wageredMoney)
+    #     print("total profit:", bankroll - 100)
+    #     print("average expected value:", (bankroll-100)/wageredMoney)
+    #     print("______________")
 
     print("******************")
     print("Total wins over", str(len(years)), "years:", totalWins)
     print("Total losses over", str(len(years)), "years:", totalLosses)
     print("Average expected growth", str(len(years)), "years:", totalGrowth / len(years))
+    print("Average expected value:", totalEdge/len(years))
+
