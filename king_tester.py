@@ -217,7 +217,7 @@ def calculate_winnings(bet, game):
     '''
     homeTeam = game.home_team_city
     awayTeam = game.away_team_city
-    #print(bet)
+    
     betTeam = bet[0]
     betAmount = bet[1]
     betLine = bet[2]
@@ -235,7 +235,7 @@ def calculate_winnings(bet, game):
         possibleProfit = possibleWinningsFav
     
     betString = "Betting $" + str(betAmount) + " on " + str(betTeam) + " to beat " + str(bet[4]) + "..."
-    print (betString)
+    #print (betString)
     if game.home_points > game.away_points:
         if betTeam == homeTeam:
             return [possibleWinnings, -betAmount, 1, 0, possibleProfit]
