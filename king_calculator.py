@@ -52,7 +52,7 @@ def calculate_pythagorean_expectation(pointsFor, pointsAgainst):
     season- 70%
     last3 - 30%
     """
-    power = .8
+    power = 0.14
     expectation = (pow(pointsFor, power))/(pow(pointsFor, power) + pow(pointsAgainst, power))
     return expectation
 
@@ -101,8 +101,10 @@ def kelly_compute(winProb, odds, bankroll):
     return edge*bankroll
 
 def get_model_lines_plus_kelly(homeTeam, homePointsFor, homePointsAgainst, homeTeamRecord, homeTeamHomeRecord, homeLine, awayTeam, awayPointsFor, awayPointsAgainst, awayTeamRecord, awayTeamAwayRecord, awayLine, bankroll):
-    weights = [100, 0, 0] #pythagorean, record, home/away record
-    
+
+    weights = [88, 10, 2] #pythagorean, record, home/away record
+    #avgEG - 7.52375   avgEV - 1.49403
+   
     homeConfidence = (weights[0] * calculate_pythagorean_expectation(homePointsFor, homePointsAgainst)) + (weights[1] * calculate_moving_team_record(homeTeamRecord)) + (weights[2] * calculate_moving_homegame_record(homeTeamHomeRecord))
 
     awayConfidence = (weights[0] * calculate_pythagorean_expectation(awayPointsFor, awayPointsAgainst)) + (weights[1] * calculate_moving_team_record(awayTeamRecord)) + (weights[2] * calculate_moving_awaygame_record(awayTeamAwayRecord))
@@ -118,7 +120,7 @@ def get_model_lines_plus_kelly(homeTeam, homePointsFor, homePointsAgainst, homeT
             return (homeTeam, homeWager, homeLine, normalizedHome, awayTeam)
     except:
         today = datetime.today()
-        d1 = datetime.strptime("10-22-2019", '%m-%d-%Y')
+        d1 = datetime.strptime("10-23-2019", '%m-%d-%Y')
         delta = (d1 - today).days
         
         return ("No listings for this game yet! The NBA season starts in " + str(delta) + " days")

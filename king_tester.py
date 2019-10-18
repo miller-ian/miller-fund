@@ -300,13 +300,12 @@ if __name__ == '__main__':
         datesWithGames = create_daily_slate(set(schedule_dict.keys()))
         bankroll = 100
         wageredMoney = 0
-        profits = 0
         count = 0
         numWagers = 0
         additiveEdge = 0
         for date in datesWithGames:
             if count >= len(datesWithGames) - 1:
-            #if count >= 100:
+        
                 break
 
             slate = schedule_dict[date]
@@ -319,24 +318,23 @@ if __name__ == '__main__':
                     slateWinnings += wager[0]
                     slateProfit = wager[4]
                     slateCost = wager[1]
+                    
                     bankroll += slateCost
                     
                     numWagers += 1
                     WINS += wager[2]
                     LOSSES += wager[3]
                     wageredMoney -= slateCost
+                    
                     try:
                         additiveEdge += (slateProfit/-slateCost)
                     except:
                         additiveEdge += (slateProfit/1)
-
-                    
-               
-                profits += slateWinnings
+                
                 bankroll += slateWinnings
             leagueState = timestep(leagueState, slate)
-
             count += 1
+
         expectedGrowth = 100.0* (((bankroll/100.0)**(1/numWagers))-1)
         expectedGrowth = str(expectedGrowth)
         expectedGrowth = expectedGrowth[:5]
