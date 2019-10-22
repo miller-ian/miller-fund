@@ -7,20 +7,18 @@ import sys
 
 def build_price_dict():
     aDict = {}
-    source = requests.get('https://www.bovada.lv/services/sports/event/v2/events/A/description/basketball').json()
-    length = len(source)
-
+    source = requests.get('https://www.bovada.lv/services/sports/event/v2/events/A/description/basketball/nba').json()
+    length = len(source[0]['events'])
     for i in range(length):
-        stuff = source[i]
-        event = stuff['events'][0]['description']
-        betKey = stuff['events'][0]['displayGroups'][0]['markets'][0]['key']
-        try:
-            if betKey == "2W-HCAP":
-                away = stuff['events'][0]['displayGroups'][0]['markets'][1]['outcomes'][0]['price']['american']
-                home = stuff['events'][0]['displayGroups'][0]['markets'][1]['outcomes'][1]['price']['american']
-                aDict[event] = [away, home]
-        except:
-            return ("No listings for this game yet!")
+        stuff = source[0]['events'][i]
+    
+        eventType = stuff['type']
+        if eventType == "GAMEEVENT":
+            event = stuff['description']
+            
+            away = stuff['displayGroups'][0]['markets'][0]['outcomes'][0]['price']['american']
+            home = stuff['displayGroups'][0]['markets'][0]['outcomes'][1]['price']['american']
+            aDict[event] = [away, home]
     return aDict
     
 def parse_prices(awayTeam, homeTeam, price_dict):
@@ -251,6 +249,7 @@ def get_model_lines_plus_kelly(homeTeam, awayTeam):
     normalizedHome = (normalize(homeConfidence, awayConfidence)[0]*100) 
     normalizedAway = (normalize(homeConfidence, awayConfidence)[1]*100)
     price_dict = build_price_dict()
+    print("!!!", price_dict)
     awayTeamForPrice = get_team_long(awayTeam)
     homeTeamForPrice = get_team_long(homeTeam)
     try:
@@ -303,3 +302,10 @@ if __name__ == '__main__':
     numGamesPlayed = get_record(newTree)
     numGamesPlayedAway = get_record(newTreeAway)
     print(get_model_lines_plus_kelly(homeTeam, awayTeam))
+
+
+
+
+
+
+

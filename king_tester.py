@@ -219,7 +219,7 @@ def calculate_winnings(bet, game):
     awayTeam = game.away_team_city
     
     betTeam = bet[0]
-    betAmount = bet[1]
+    betAmount = float(bet[1])
     betLine = bet[2]
     if betAmount < 0:
         return [0, 0, 0, 0, 0]
@@ -229,22 +229,22 @@ def calculate_winnings(bet, game):
     possibleProfit = 0
     if betLine > 0:
         possibleWinnings = possibleWinningsDog + betAmount
-        possibleProfit = possibleWinningsDog
+        possibleProfit = betLine / 100.0
     else:
         possibleWinnings = possibleWinningsFav + betAmount
         possibleProfit = possibleWinningsFav
     
     betString = "Betting $" + str(betAmount) + " on " + str(betTeam) + " to beat " + str(bet[4]) + "..."
-    #print (betString)
+    print (betString)
     if game.home_points > game.away_points:
         if betTeam == homeTeam:
-            return [possibleWinnings, -betAmount, 1, 0, possibleProfit]
+            return [possibleWinnings, -betAmount, 1, 0, edge]
         else:
             return [0, -betAmount, 0, 1, 0, 0]
     else:
         if betTeam == awayTeam:
             
-            return [possibleWinnings, -betAmount, 1, 0, possibleProfit]
+            return [possibleWinnings, -betAmount, 1, 0, edge]
         else:
             return [0, -betAmount, 0, 1, 0, 0]
 
@@ -283,8 +283,8 @@ def placeBet(leagueState, game, bankroll):
 
 
 if __name__ == '__main__':
-    years = read_years()
-    #years = [1819]
+    #years = read_years()
+    years = [1819]
     totalWins = 0
     totalLosses = 0
     totalGrowth = 0
@@ -304,8 +304,8 @@ if __name__ == '__main__':
         numWagers = 0
         additiveEdge = 0
         for date in datesWithGames:
-            if count >= len(datesWithGames) - 1:
-        
+            #if count >= len(datesWithGames) - 1:
+            if count >= 12:
                 break
 
             slate = schedule_dict[date]
@@ -315,6 +315,8 @@ if __name__ == '__main__':
                 slateCost = 0
                 for g in slate:
                     wager = placeBet(leagueState, g, bankroll)
+                    if wager[1] == 0:
+                        continue
                     slateWinnings += wager[0]
                     slateProfit = wager[4]
                     slateCost = wager[1]
@@ -325,11 +327,9 @@ if __name__ == '__main__':
                     WINS += wager[2]
                     LOSSES += wager[3]
                     wageredMoney -= slateCost
-                    
-                    try:
-                        additiveEdge += (slateProfit/-slateCost)
-                    except:
-                        additiveEdge += (slateProfit/1)
+          
+                    additiveEdge += (slateProfit/-slateCost)
+                    print(slateProfit/-slateCost)
                 
                 bankroll += slateWinnings
             leagueState = timestep(leagueState, slate)
