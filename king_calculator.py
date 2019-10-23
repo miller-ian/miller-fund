@@ -101,9 +101,18 @@ def kelly_compute(winProb, odds, bankroll):
     return edge*bankroll
 
 def get_model_lines_plus_kelly(homeTeam, homePointsFor, homePointsAgainst, homeTeamRecord, homeTeamHomeRecord, homeLine, awayTeam, awayPointsFor, awayPointsAgainst, awayTeamRecord, awayTeamAwayRecord, awayLine, bankroll):
+    
+    weights = [73, 19, 8]   #pythagorean, record, home/away record
+    #avgEg - 7.92775   avgEV - 2.07161
 
-    weights = [88, 10, 2] #pythagorean, record, home/away record
-    #avgEG - 7.52375   avgEV - 1.49403
+    #weights = [100, 0, 0]
+    #aveEG - 7.81108  avgEV - 2.056878
+
+    #weights = [88, 10, 2] 
+    #avgEG - 7.87700   avgEV - 2.05964
+
+    #weights = [74, 13, 13]
+    #avgEG - 7.757166  avgEV - 2.06936
    
     homeConfidence = (weights[0] * calculate_pythagorean_expectation(homePointsFor, homePointsAgainst)) + (weights[1] * calculate_moving_team_record(homeTeamRecord)) + (weights[2] * calculate_moving_homegame_record(homeTeamHomeRecord))
 

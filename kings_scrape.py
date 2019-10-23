@@ -225,7 +225,6 @@ def kelly_compute(winProb, odds, bankroll):
     b -= 1
     q = 1-winProb
     edge = (b*winProb-q) / b
-    #print("bankroll", bankroll, type(bankroll))
     return edge*bankroll
 
 def get_model_lines(homeTeam, awayTeam):

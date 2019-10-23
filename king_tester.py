@@ -1,5 +1,4 @@
 import csv
-#import kings_scrape as ks
 import king_calculator as kc
 import requests
 from lxml import html
@@ -44,8 +43,6 @@ def read_years():
 def read_data(year):
     listOfGames = []
     with open('C:/Users/imaxm/Desktop/mitSophomore/sportsBetting/miller-fund/historical_odds/' + str(year) + '.csv') as csv_file:
-    #with open('C:/Users/imaxm/Desktop/mitSophomore/sportsBetting/miller-fund/historical_odds/test.csv') as csv_file:
-
         csv_reader = csv.reader(csv_file, delimiter=",")
         line_count = 1
         for row in csv_reader:
@@ -103,7 +100,6 @@ def get_teams():
         'MEM' : 'Memphis',
         'NJY' : 'NewJersey',
         'SEA' : 'Seattle'
-
     }
         
 def instantiateTeams():
@@ -175,9 +171,7 @@ def timestep(leagueState, slate):
             else:
                 homeWins = [1]
 
-        updatedHomeTeam = Team(homeTeam, homeGames, homeTeamRecord, homeWins, homeWinsAway, updatedHomePointsFor, updatedHomePointsAgainst)
-        
-        
+        updatedHomeTeam = Team(homeTeam, homeGames, homeTeamRecord, homeWins, homeWinsAway, updatedHomePointsFor, updatedHomePointsAgainst)        
         awayTeamObject = leagueState[awayTeam]
         awayGames = awayTeamObject.games
         awayPointsFor = awayTeamObject.pointsFor
@@ -238,13 +232,13 @@ def calculate_winnings(bet, game):
     print (betString)
     if game.home_points > game.away_points:
         if betTeam == homeTeam:
-            return [possibleWinnings, -betAmount, 1, 0, edge]
+            return [possibleWinnings, -betAmount, 1, 0, possibleProfit]
         else:
             return [0, -betAmount, 0, 1, 0, 0]
     else:
         if betTeam == awayTeam:
             
-            return [possibleWinnings, -betAmount, 1, 0, edge]
+            return [possibleWinnings, -betAmount, 1, 0, possibleProfit]
         else:
             return [0, -betAmount, 0, 1, 0, 0]
 
@@ -281,10 +275,8 @@ def placeBet(leagueState, game, bankroll):
     winnings = calculate_winnings(bet, game)
     return winnings
 
-
 if __name__ == '__main__':
-    #years = read_years()
-    years = [1819]
+    years = read_years()
     totalWins = 0
     totalLosses = 0
     totalGrowth = 0
@@ -304,32 +296,27 @@ if __name__ == '__main__':
         numWagers = 0
         additiveEdge = 0
         for date in datesWithGames:
-            #if count >= len(datesWithGames) - 1:
-            if count >= 12:
+            if count >= (len(datesWithGames) - 1):
                 break
-
             slate = schedule_dict[date]
             
-            if count > 10:
+            if count > 12:
                 slateWinnings = 0
                 slateCost = 0
                 for g in slate:
                     wager = placeBet(leagueState, g, bankroll)
-                    if wager[1] == 0:
-                        continue
-                    slateWinnings += wager[0]
-                    slateProfit = wager[4]
+                    payout = wager[0]
                     slateCost = wager[1]
-                    
-                    bankroll += slateCost
-                    
-                    numWagers += 1
                     WINS += wager[2]
                     LOSSES += wager[3]
+                    slateProfit = wager[4]
+                    if slateCost == 0:
+                        continue
+                    slateWinnings += payout
+                    bankroll += slateCost
+                    numWagers += 1
                     wageredMoney -= slateCost
-          
-                    additiveEdge += (slateProfit/-slateCost)
-                    print(slateProfit/-slateCost)
+                    additiveEdge += (payout/-slateCost)
                 
                 bankroll += slateWinnings
             leagueState = timestep(leagueState, slate)
@@ -358,9 +345,11 @@ if __name__ == '__main__':
     #     print("average expected value:", (bankroll-100)/wageredMoney)
     #     print("______________")
 
+    ev = totalEdge/(2*len(years))
+
     print("******************")
     print("Total wins over", str(len(years)), "years:", totalWins)
     print("Total losses over", str(len(years)), "years:", totalLosses)
     print("Average expected growth", str(len(years)), "years:", totalGrowth / len(years))
-    print("Average expected value:", totalEdge/len(years))
-
+    print("Average expected value:", ev)
+    print("Average model edge:", (ev-1)*100)
