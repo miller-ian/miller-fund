@@ -42,6 +42,7 @@ def calculate_moving_homegame_record(homeRecord):
     for i in range(0, homeGames):
         nthGame += 1
         listOfRecord.append(homeRecord[i]/nthGame)
+    #print(listOfRecord)
     return trailing_weighted_average(listOfRecord, create_triangle_num_list(homeGames))
 
 def calculate_pythagorean_expectation(pointsFor, pointsAgainst):
@@ -52,7 +53,7 @@ def calculate_pythagorean_expectation(pointsFor, pointsAgainst):
     season- 70%
     last3 - 30%
     """
-    power = 0.14
+    power = 8.9
     expectation = (pow(pointsFor, power))/(pow(pointsFor, power) + pow(pointsAgainst, power))
     return expectation
 
@@ -100,9 +101,9 @@ def kelly_compute(winProb, odds, bankroll):
     edge = (b*winProb-q) / b
     return edge*bankroll
 
-def get_model_lines_plus_kelly(homeTeam, homePointsFor, homePointsAgainst, homeTeamRecord, homeTeamHomeRecord, homeLine, awayTeam, awayPointsFor, awayPointsAgainst, awayTeamRecord, awayTeamAwayRecord, awayLine, bankroll):
+def get_model_lines_plus_kelly(weights, homeTeam, homePointsFor, homePointsAgainst, homeTeamRecord, homeTeamHomeRecord, homeLine, awayTeam, awayPointsFor, awayPointsAgainst, awayTeamRecord, awayTeamAwayRecord, awayLine, bankroll):
     
-    weights = [73, 19, 8]   #pythagorean, record, home/away record
+    #weights = [73, 19, 8]   #pythagorean, record, home/away record
     #avgEg - 7.92775   avgEV - 2.07161
 
     #weights = [100, 0, 0]
@@ -113,6 +114,10 @@ def get_model_lines_plus_kelly(homeTeam, homePointsFor, homePointsAgainst, homeT
 
     #weights = [74, 13, 13]
     #avgEG - 7.757166  avgEV - 2.06936
+
+    #weights = [40, 40, 20]
+    #weights = [70, 15, 15]
+    #weights = [3, 94, 3]
    
     homeConfidence = (weights[0] * calculate_pythagorean_expectation(homePointsFor, homePointsAgainst)) + (weights[1] * calculate_moving_team_record(homeTeamRecord)) + (weights[2] * calculate_moving_homegame_record(homeTeamHomeRecord))
 
@@ -120,16 +125,11 @@ def get_model_lines_plus_kelly(homeTeam, homePointsFor, homePointsAgainst, homeT
 
     normalizedHome = (normalize(homeConfidence, awayConfidence)[0]*100) 
     normalizedAway = (normalize(homeConfidence, awayConfidence)[1]*100)
-    try:
-        awayWager = kelly_compute(normalizedAway, awayLine, bankroll)
-        homeWager = kelly_compute(normalizedHome, homeLine, bankroll)
-        if awayWager > 0:
-            return (awayTeam, awayWager, awayLine, normalizedAway, homeTeam)
-        else:
-            return (homeTeam, homeWager, homeLine, normalizedHome, awayTeam)
-    except:
-        today = datetime.today()
-        d1 = datetime.strptime("10-23-2019", '%m-%d-%Y')
-        delta = (d1 - today).days
-        
-        return ("No listings for this game yet! The NBA season starts in " + str(delta) + " days")
+
+    awayWager = kelly_compute(normalizedAway, awayLine, bankroll)
+    homeWager = kelly_compute(normalizedHome, homeLine, bankroll)
+    if awayWager > 0:
+        return (awayTeam, awayWager, awayLine, normalizedAway, homeTeam)
+    else:
+        return (homeTeam, homeWager, homeLine, normalizedHome, awayTeam)
+
