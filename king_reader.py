@@ -12,6 +12,7 @@ def build_price_dict():
     for i in range(length):
         stuff = source[0]['events'][i]
     
+    
         eventType = stuff['type']
         if eventType == "GAMEEVENT":
             event = stuff['description']
@@ -134,7 +135,7 @@ def parse_home_away(tree, numGames):
     homeWins = 0
     homeRecord = []
     homeGames = 0
-    for i in range((7 * numGamesPlayed) - 1):
+    for i in range((7 * numGames) - 1):
         if results[i] == '@':
             awayGames += 1
             if results[i + 1] == 'W':
@@ -180,9 +181,10 @@ def calculate_pythagorean_expectation(tree, team):
     last3 - 30%
     """
     stats = tree.xpath('//table[@class="tr-table"]//tr//td[@class="text-right"]/text()')
+    power = 8.9
     pointsFor = float(stats[3])
     pointsAgainst = float(stats[13])
-    expectation = (pow(pointsFor, 1.81))/(pow(pointsFor, 1.81) + pow(pointsAgainst, 1.81))
+    expectation = (pow(pointsFor, power))/(pow(pointsFor, power) + pow(pointsAgainst, power))
     return expectation
 
 
@@ -193,7 +195,6 @@ def normalize(p1, p2):
     if p1 > p2:
         greater = p1
         smaller = p2
-        regular = True
     else:
         greater = p2
         smaller = p1
@@ -243,12 +244,19 @@ def get_model_lines(homeTeam, awayTeam):
         return ((winner, 'if moneyline >', convert_to_moneyline(normalizedHome)), (loser, 'if moneyline >', convert_to_moneyline(normalizedAway)))
 
 def get_model_lines_plus_kelly(homeTeam, awayTeam):
-    homeConfidence = (50 * calculate_pythagorean_expectation(newTree, homeTeam)) + (25 * calculate_moving_team_record(tree, numGamesPlayed)) + (25 * calculate_moving_homegame_record(tree, numGamesPlayed))
-    awayConfidence = (50 * calculate_pythagorean_expectation(newTreeAway, awayTeam)) + (25 * calculate_moving_team_record(awayTree, numGamesPlayedAway)) + (25 * calculate_moving_awaygame_record(awayTree, numGamesPlayedAway))
+    weights = [100, 0, 0]
+    homeConfidence = (weights[0] * calculate_pythagorean_expectation(newTree, homeTeam)) + (weights[1] * calculate_moving_team_record(tree, numGamesPlayed)) + (weights[2] * calculate_moving_homegame_record(tree, numGamesPlayed))
+    print(calculate_moving_team_record(tree, numGamesPlayed))
+    awayConfidence = (weights[0] * calculate_pythagorean_expectation(newTreeAway, awayTeam)) + (weights[1] * calculate_moving_team_record(awayTree, numGamesPlayedAway)) + (weights[2] * calculate_moving_awaygame_record(awayTree, numGamesPlayedAway))
+    print(calculate_moving_team_record(awayTree, numGamesPlayedAway))
+
+    print(homeConfidence)
+    print(awayConfidence)
     normalizedHome = (normalize(homeConfidence, awayConfidence)[0]*100) 
     normalizedAway = (normalize(homeConfidence, awayConfidence)[1]*100)
+    print(str(homeTeam) + " -> " + str(normalizedHome))
+    print(str(awayTeam) + " -> " + str(normalizedAway))
     price_dict = build_price_dict()
-    print("!!!", price_dict)
     awayTeamForPrice = get_team_long(awayTeam)
     homeTeamForPrice = get_team_long(homeTeam)
     try:
@@ -262,9 +270,9 @@ def get_model_lines_plus_kelly(homeTeam, awayTeam):
         awayWager = kelly_compute(normalizedAway, awayLine, bankroll)
         homeWager = kelly_compute(normalizedHome, homeLine, bankroll)
         if awayWager > 0:
-            return ("bet", awayWager, " on", awayTeam)
+            return ("bet " + str(awayWager) + " on " + str(awayTeam))
         else:
-            return ("bet", homeWager, " on", homeTeam)
+            return ("bet " + str(homeWager) + " on " + str(homeTeam))
     except:
         today = datetime.today()
         d1 = datetime.strptime("10-23-2019", '%m-%d-%Y')
@@ -272,11 +280,8 @@ def get_model_lines_plus_kelly(homeTeam, awayTeam):
         
         return ("No listings for this game yet! The NBA season starts in " + str(delta) + " days")
 
-if __name__ == '__main__':
-    homeTeam = input("Give 3-letter abbreviation for home team: ")
-    awayTeam = input("Give 3-letter abbreviation for away team: ")
-
-    bankroll = input("Enter your bankroll:")
+def theMain(homeTeam, awayTeam, bankroll):
+    
     try:
         bankroll = float(bankroll)
     except:

@@ -199,3 +199,78 @@ def timestep(leagueState, slate):
         leagueState[awayTeam] = updatedAwayTeam
         leagueState[homeTeam] = updatedHomeTeam   
     return leagueState
+
+def calculate_winnings(bet, game):
+    '''
+    Return is a list of 5 elements:
+    1- Actual return
+    2- Amount of money wagered
+    3- 1 for win, 0 for no win
+    4- 1 for loss, 0 for no loss
+    5- profit
+    '''
+    homeTeam = game.home_team_city
+    awayTeam = game.away_team_city
+    
+    betTeam = bet[0]
+    betAmount = float(bet[1])
+    betLine = bet[2]
+    if betAmount < 0:
+        return [0, 0, 0, 0, 0]
+    possibleWinningsDog = betAmount * betLine / 100.0
+    possibleWinningsFav = betAmount / (-betLine/100.0)
+    possibleWinnings = 0
+    possibleProfit = 0
+    if betLine > 0:
+        possibleWinnings = possibleWinningsDog + betAmount
+        possibleProfit = betLine / 100.0
+    else:
+        possibleWinnings = possibleWinningsFav + betAmount
+        possibleProfit = possibleWinningsFav
+    
+    betString = "Betting $" + str(betAmount) + " on " + str(betTeam) + " at " + str(betLine) + " to beat " + str(bet[4]) + "..."
+    print(betString)
+    
+    if int(game.home_points) > int(game.away_points):
+        if betTeam == homeTeam:
+            return [possibleWinnings, -betAmount, 1, 0, possibleProfit]
+        else:
+            return [0, -betAmount, 0, 1, 0, 0]
+    else:
+        if betTeam == awayTeam:
+            return [possibleWinnings, -betAmount, 1, 0, possibleProfit]
+        else:
+            return [0, -betAmount, 0, 1, 0, 0]
+
+def placeBet(leagueState, game, bankroll, weights):
+    if game.home_moneyLine == "NL" or game.home_moneyLine == "NL":
+        return [0, 0, 0, 0, 0]
+    homeTeam = game.home_team_city
+    awayTeam = game.away_team_city
+    homePointsFor = leagueState[homeTeam].pointsFor
+    homePointsAgainst = leagueState[homeTeam].pointsAgainst
+    homeTeamRecord = leagueState[homeTeam].record
+    homeTeamHomeRecord = leagueState[homeTeam].homeWins
+    homeLine = int(game.home_moneyLine)
+    awayPointsFor = leagueState[awayTeam].pointsFor
+    awayPointsAgainst = leagueState[awayTeam].pointsAgainst
+    awayTeamRecord = leagueState[awayTeam].record
+    awayTeamAwayRecord = leagueState[awayTeam].awayWins
+    awayLine = int(game.away_moneyLine)
+    
+    bet = (kc.get_model_lines_plus_kelly(weights,
+                                        homeTeam,
+                                        homePointsFor, 
+                                        homePointsAgainst, 
+                                        homeTeamRecord,
+                                        homeTeamHomeRecord, 
+                                        homeLine, 
+                                        awayTeam,
+                                        awayPointsFor, 
+                                        awayPointsAgainst, 
+                                        awayTeamRecord,
+                                        awayTeamAwayRecord, 
+                                        awayLine,
+                                        bankroll))
+    winnings = calculate_winnings(bet, game)
+    return winnings
