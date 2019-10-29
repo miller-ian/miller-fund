@@ -173,8 +173,8 @@ def calculate_pythagorean_expectation(tree, team):
     return expectation
 
 def write(homeTeam, awayTeam):
-    homeLong = get_team_long("DET")
-    awayLong = get_team_long("IND")
+    homeLong = get_team_long(homeTeam)
+    awayLong = get_team_long(awayTeam)
     price_dict = parse_prices(awayLong, homeLong, build_price_dict())
     try:
         page = requests.get('https://www.basketball-reference.com/teams/' + str(homeTeam) + '/2019_games.html')
@@ -203,18 +203,18 @@ def write(homeTeam, awayTeam):
     awayTeamPythagoreanExpectation = calculate_pythagorean_expectation(newTreeAway, awayTeam)
     
     today = datetime.today()
-
-    print(today)
-    print(homeTeam)
-    print(homeTeamMovingRecord)
-    print(homeTeamMovingHomeRecord)
-    print(homeTeamPythagoreanExpectation)
-    print(price_dict[1]) #home
-    print(awayTeam)
-    print(awayTeamMovingRecord)
-    print(awayTeamMovingAwayRecord)
-    print(awayTeamPythagoreanExpectation)
-    print(price_dict[0])
+    print(price_dict)
+    # print(today)
+    # print(homeTeam)
+    # print(homeTeamMovingRecord)
+    # print(homeTeamMovingHomeRecord)
+    # print(homeTeamPythagoreanExpectation)
+    # print(price_dict) #home
+    # print(awayTeam)
+    # print(awayTeamMovingRecord)
+    # print(awayTeamMovingAwayRecord)
+    # print(awayTeamPythagoreanExpectation)
+    # print(price_dict[0])
 
 
     

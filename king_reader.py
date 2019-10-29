@@ -243,15 +243,11 @@ def get_model_lines(homeTeam, awayTeam):
     else:
         return ((winner, 'if moneyline >', convert_to_moneyline(normalizedHome)), (loser, 'if moneyline >', convert_to_moneyline(normalizedAway)))
 
-def get_model_lines_plus_kelly(homeTeam, awayTeam):
+def get_model_lines_plus_kelly(homeTeam, newTree, tree, numGamesPlayed, awayTeam, newTreeAway, awayTree, numGamesPlayedAway, bankroll):
     weights = [100, 0, 0]
     homeConfidence = (weights[0] * calculate_pythagorean_expectation(newTree, homeTeam)) + (weights[1] * calculate_moving_team_record(tree, numGamesPlayed)) + (weights[2] * calculate_moving_homegame_record(tree, numGamesPlayed))
-    print(calculate_moving_team_record(tree, numGamesPlayed))
     awayConfidence = (weights[0] * calculate_pythagorean_expectation(newTreeAway, awayTeam)) + (weights[1] * calculate_moving_team_record(awayTree, numGamesPlayedAway)) + (weights[2] * calculate_moving_awaygame_record(awayTree, numGamesPlayedAway))
-    print(calculate_moving_team_record(awayTree, numGamesPlayedAway))
-
-    print(homeConfidence)
-    print(awayConfidence)
+    
     normalizedHome = (normalize(homeConfidence, awayConfidence)[0]*100) 
     normalizedAway = (normalize(homeConfidence, awayConfidence)[1]*100)
     print(str(homeTeam) + " -> " + str(normalizedHome))
@@ -261,12 +257,14 @@ def get_model_lines_plus_kelly(homeTeam, awayTeam):
     homeTeamForPrice = get_team_long(homeTeam)
     try:
         awayLine, homeLine = parse_prices(awayTeamForPrice, homeTeamForPrice, price_dict)
+
         if awayLine == 'EVEN':
             awayLine = 100.0
         if homeLine == 'EVEN':
             homeLine = 100.0
-        awayLine = int(awayLine)
-        homeLine = int(homeLine)
+        awayLine = int(awayLine[1:])
+
+        homeLine = int(homeLine[1:])
         awayWager = kelly_compute(normalizedAway, awayLine, bankroll)
         homeWager = kelly_compute(normalizedHome, homeLine, bankroll)
         if awayWager > 0:
@@ -305,7 +303,7 @@ def theMain(homeTeam, awayTeam, bankroll):
         sys.exit(1)
     numGamesPlayed = get_record(newTree)
     numGamesPlayedAway = get_record(newTreeAway)
-    print(get_model_lines_plus_kelly(homeTeam, awayTeam))
+    print(get_model_lines_plus_kelly(homeTeam, newTree, tree, numGamesPlayed, awayTeam, newTreeAway, awayTree, numGamesPlayedAway, bankroll))
 
 
 
