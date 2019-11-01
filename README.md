@@ -18,6 +18,6 @@ This model scrapes from several websites to limit the amount of info you need to
 
 # Performance
 
-As of now, the Miller Fund NBA Model has returned 7% over 80 games wagered on. 
+As of now, the Miller Fund NBA Model has returned 10.3% over 114 games wagered on. 
 
 Backtesting is currently in development to be able to refine model.
