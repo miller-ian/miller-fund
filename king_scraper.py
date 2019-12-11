@@ -16,10 +16,14 @@ def build_price_dict():
         eventType = stuff['type']
         if eventType == "GAMEEVENT":
             event = stuff['description']
-            
-            away = stuff['displayGroups'][0]['markets'][0]['outcomes'][0]['price']['american']
-            home = stuff['displayGroups'][0]['markets'][0]['outcomes'][1]['price']['american']
-            aDict[event] = [away, home]
+            try:
+                print(stuff['displayGroups'][0]['markets'][0]['outcomes'][0]['price']['american'])
+                away = stuff['displayGroups'][0]['markets'][0]['outcomes'][0]['price']['american']
+                home = stuff['displayGroups'][0]['markets'][0]['outcomes'][1]['price']['american']
+                aDict[event] = [away, home]
+            except:
+                aDict[event] = [0, 0]
+                continue
     return aDict
 
 def parse_prices(awayTeam, homeTeam, price_dict):

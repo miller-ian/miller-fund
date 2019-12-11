@@ -16,10 +16,12 @@ def build_price_dict():
         eventType = stuff['type']
         if eventType == "GAMEEVENT":
             event = stuff['description']
-            
-            away = stuff['displayGroups'][0]['markets'][0]['outcomes'][0]['price']['american']
-            home = stuff['displayGroups'][0]['markets'][0]['outcomes'][1]['price']['american']
-            aDict[event] = [away, home]
+            try:
+                away = stuff['displayGroups'][0]['markets'][0]['outcomes'][0]['price']['american']
+                home = stuff['displayGroups'][0]['markets'][0]['outcomes'][1]['price']['american']
+                aDict[event] = [away, home]
+            except:
+                print(" ")
     return aDict
     
 def parse_prices(awayTeam, homeTeam, price_dict):
@@ -218,6 +220,7 @@ def convert_to_moneyline(confidence):
         return differential*100
 
 def kelly_compute(winProb, odds, bankroll):
+    print(winProb, odds, bankroll)
     winProb *= (1/100)
     if odds > 0:
         b = (odds / 100.0) + 1
@@ -262,9 +265,9 @@ def get_model_lines_plus_kelly(homeTeam, newTree, tree, numGamesPlayed, awayTeam
             awayLine = 100.0
         if homeLine == 'EVEN':
             homeLine = 100.0
-        awayLine = int(awayLine[1:])
+        awayLine = int(awayLine)
 
-        homeLine = int(homeLine[1:])
+        homeLine = int(homeLine)
         awayWager = kelly_compute(normalizedAway, awayLine, bankroll)
         homeWager = kelly_compute(normalizedHome, homeLine, bankroll)
         if awayWager > 0:
