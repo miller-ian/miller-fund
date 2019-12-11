@@ -5,7 +5,7 @@ if __name__ == '__main__':
     homeTeam = input("Give 3-letter abbreviation for home team: ")
     awayTeam = input("Give 3-letter abbreviation for away team: ")
 
-    #ks.write(homeTeam, awayTeam)
+    ks.write(homeTeam, awayTeam)
     
     bankroll = input("Enter your bankroll:")
 
