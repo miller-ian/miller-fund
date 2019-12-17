@@ -31,7 +31,7 @@ def calculate_moving_awaygame_record(awayRecord):
     listOfRecord = []
     nthGame = 0
     for i in range(0, awayGames):
-        nthGame += 1        
+        nthGame += 1
         listOfRecord.append(awayRecord[i]/(nthGame))
     return trailing_weighted_average(listOfRecord, create_triangle_num_list(awayGames))
 
@@ -42,7 +42,6 @@ def calculate_moving_homegame_record(homeRecord):
     for i in range(0, homeGames):
         nthGame += 1
         listOfRecord.append(homeRecord[i]/nthGame)
-    #print(listOfRecord)
     return trailing_weighted_average(listOfRecord, create_triangle_num_list(homeGames))
 
 def calculate_pythagorean_expectation(pointsFor, pointsAgainst):
@@ -91,6 +90,8 @@ def convert_to_moneyline(confidence):
 def kelly_compute(winProb, odds, bankroll):
     winProb *= (1/100)
     odds = float(odds)
+    # if odds < 0:
+    #     odds *= -1
     if odds > 0:
         b = (odds / 100.0) + 1
 
@@ -101,15 +102,15 @@ def kelly_compute(winProb, odds, bankroll):
     edge = (b*winProb-q) / b
     return edge*bankroll
 
-def get_model_lines_plus_kelly(weights, homeTeam, homePointsFor, homePointsAgainst, homeTeamRecord, homeTeamHomeRecord, homeLine, awayTeam, awayPointsFor, awayPointsAgainst, awayTeamRecord, awayTeamAwayRecord, awayLine, bankroll):
-    
+def get_model_lines_plus_kelly(weights, homeTeam, homePointsFor, homePointsAgainst, homeTeamRecord, homeTeamHomeRecord, homeTeamDaysRest, homeLine, awayTeam, awayPointsFor, awayPointsAgainst, awayTeamRecord, awayTeamAwayRecord, awayTeamDaysRest, awayLine, bankroll):
+
     #weights = [73, 19, 8]   #pythagorean, record, home/away record
     #avgEg - 7.92775   avgEV - 2.07161
 
     #weights = [100, 0, 0]
     #aveEG - 7.81108  avgEV - 2.056878
 
-    #weights = [88, 10, 2] 
+    #weights = [88, 10, 2]
     #avgEG - 7.87700   avgEV - 2.05964
 
     #weights = [74, 13, 13]
@@ -118,12 +119,12 @@ def get_model_lines_plus_kelly(weights, homeTeam, homePointsFor, homePointsAgain
     #weights = [40, 40, 20]
     #weights = [70, 15, 15]
     #weights = [3, 94, 3]
-   
-    homeConfidence = (weights[0] * calculate_pythagorean_expectation(homePointsFor, homePointsAgainst)) + (weights[1] * calculate_moving_team_record(homeTeamRecord)) + (weights[2] * calculate_moving_homegame_record(homeTeamHomeRecord))
 
-    awayConfidence = (weights[0] * calculate_pythagorean_expectation(awayPointsFor, awayPointsAgainst)) + (weights[1] * calculate_moving_team_record(awayTeamRecord)) + (weights[2] * calculate_moving_awaygame_record(awayTeamAwayRecord))
+    homeConfidence = (weights[0] * calculate_pythagorean_expectation(homePointsFor, homePointsAgainst)) + (weights[1] * calculate_moving_team_record(homeTeamRecord)) + (weights[2] * calculate_moving_homegame_record(homeTeamHomeRecord) + weights[3] * homeTeamDaysRest)
 
-    normalizedHome = (normalize(homeConfidence, awayConfidence)[0]*100) 
+    awayConfidence = (weights[0] * calculate_pythagorean_expectation(awayPointsFor, awayPointsAgainst)) + (weights[1] * calculate_moving_team_record(awayTeamRecord)) + (weights[2] * calculate_moving_awaygame_record(awayTeamAwayRecord) + weights[3] * awayTeamDaysRest)
+
+    normalizedHome = (normalize(homeConfidence, awayConfidence)[0]*100)
     normalizedAway = (normalize(homeConfidence, awayConfidence)[1]*100)
 
     awayWager = kelly_compute(normalizedAway, awayLine, bankroll)

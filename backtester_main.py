@@ -1,5 +1,4 @@
 import csv
-import king_calculator as kc
 import backtester_helper as helper
 import requests
 from lxml import html
@@ -16,7 +15,7 @@ if the printed value is $99.50, each bet loses 0.5% on average.
 
 if __name__ == '__main__':
     years = helper.read_years()
-    weights = [50, 40, 10]
+    weights = [50, 40, 9.5, 0.5]
     totalWins = 0
     totalLosses = 0
     totalGrowth = 0
@@ -38,7 +37,7 @@ if __name__ == '__main__':
                 break
             slate = schedule_dict[date]
             
-            if count > 12:
+            if count > 42:
                 slateWinnings = 0
                 slateCost = 0
                 for g in slate:
