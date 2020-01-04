@@ -87,9 +87,8 @@ def read_years():
             "1617",
             "1718",
             "1819"]
-    year = ["1819"]
     
-    return year
+    return years
 
 def read_data(year):
     listOfGames = []
@@ -274,14 +273,14 @@ def calculate_winnings(bet, game):
     
     if int(game.home_points) > int(game.away_points):
         if betTeam == homeTeam:
-            return [possibleWinnings, -betAmount, 1, 0, possibleProfit]
+            return [possibleWinnings, -betAmount, 1, 0, possibleProfit, betLine]
         else:
-            return [0, -betAmount, 0, 1, 0, 0]
+            return [0, -betAmount, 0, 1, 0, betLine]
     else:
         if betTeam == awayTeam:
-            return [possibleWinnings, -betAmount, 1, 0, possibleProfit]
+            return [possibleWinnings, -betAmount, 1, 0, possibleProfit, betLine]
         else:
-            return [0, -betAmount, 0, 1, 0, 0]
+            return [0, -betAmount, 0, 1, 0, betLine]
 
 def placeBet(leagueState, game, bankroll, weights):
     if game.home_moneyLine == "NL" or game.home_moneyLine == "NL":
