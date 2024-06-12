@@ -1,5 +1,5 @@
 
-# The Miller Fund
+# Miller Fund
 The purpose of this repo is to predict the winning spread in a particular NBA basketball game. Using this predicted spread, the model will spit out a wager decision.
 
 # How to Use
